@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "332094209467",
+    "firebase_url": "https://buslink-a0c81-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "buslink-a0c81",
+    "storage_bucket": "buslink-a0c81.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332094209467:android:045c7f5d8cb1273282989e",
+        "android_client_info": {
+          "package_name": "com.example.buslinkdriver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBG33wyypd6l5v40VoJ_LrT9NFFY71HEsE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

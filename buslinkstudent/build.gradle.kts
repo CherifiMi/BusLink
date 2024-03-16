@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.buslinkdriver"
+    namespace = "com.example.buslinkstudent"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.buslinkdriver"
+        applicationId = "com.example.buslinkstudent"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -68,13 +68,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    implementation("com.github.BirjuVachhani:locus-android:5.0.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
-    implementation("com.huawei.hms:location:6.11.0.301")
-    implementation("com.google.android.gms:play-services-location:21.0.1")
-
     implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-database")
+
+
 }
