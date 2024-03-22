@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    kotlin("kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -74,7 +76,21 @@ dependencies {
     implementation("com.huawei.hms:location:6.11.0.301")
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
+    implementation("com.google.code.gson:gson:2.10.1")
+
     implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-database")
+
+    implementation(project(":common"))
+
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+
+}
+
+kapt {
+    correctErrorTypes = true
 }

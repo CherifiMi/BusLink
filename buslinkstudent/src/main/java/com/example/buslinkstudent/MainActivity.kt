@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.buslinkstudent.ui.theme.BusLinkDriverTheme
+import com.example.common.readFromWebSocket
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -35,34 +36,11 @@ class MainActivity : ComponentActivity() {
                     var txt by remember { mutableStateOf("text") }
                     Text(text = txt)
 
-                    readFromDB { txt = it }
+                    readFromWebSocket { txt = it }
 
-                    /*val db = Firebase.firestore
-                    db.collection("BusDB")
-                        .get()
-                        .addOnSuccessListener { result ->
-                            txt = "MITO STUDENT" + result.documents.get(0).data.toString()
-                        }*/
                 }
             }
         }
     }
 }
 
-fun readFromDB(function: (it: String) -> Unit) {
-    val database = Firebase.database
-    val myRef = database.getReference("132")
-
-    myRef.addValueEventListener(object : ValueEventListener {
-        override fun onDataChange(dataSnapshot: DataSnapshot) {
-            val value = dataSnapshot.getValue<String>()
-            Log.d("MITOTEST", "Value is: $value")
-
-            function(value.toString())
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            Log.w("MITOTEST", "Failed to read value.", error.toException())
-        }
-    })
-}

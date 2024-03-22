@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 rootProject.name = "BusLinkDriver"
 include(":app")
 include(":buslinkstudent")
+include(":common")
