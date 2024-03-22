@@ -89,6 +89,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
 
+    implementation("com.mapbox.maps:android:11.2.1")
+    implementation("com.mapbox.extension:maps-compose:11.2.1")
+
 }
 
 kapt {
