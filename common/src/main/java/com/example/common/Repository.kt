@@ -10,6 +10,8 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 fun getBusesInfo(f:(it:  Buses)-> Unit){
     val db = Firebase.firestore
@@ -24,13 +26,13 @@ fun getBusesInfo(f:(it:  Buses)-> Unit){
 }
 
 
-fun sendDataToWebSocket(bus_id: Int, s: String) {
+suspend fun sendDataToWebSocket(bus_id: Int, s: String) = withContext(Dispatchers.IO){
     val database = Firebase.database
     val myRef = database.getReference(bus_id.toString())
     myRef.setValue(s)
 }
 
-fun readFromWebSocket(function: (it: String) -> Unit) {
+suspend fun readFromWebSocket(function: (it: String) -> Unit) = withContext(Dispatchers.IO){
     val database = Firebase.database
     val myRef = database.getReference("132")
 

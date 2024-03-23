@@ -92,6 +92,10 @@ dependencies {
     implementation("com.mapbox.maps:android:11.2.1")
     implementation("com.mapbox.extension:maps-compose:11.2.1")
 
+
+    implementation ("com.google.accompanist:accompanist-flowlayout:0.35.0-alpha")
+
+
 }
 
 kapt {

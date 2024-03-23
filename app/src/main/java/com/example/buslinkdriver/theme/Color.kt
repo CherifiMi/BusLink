@@ -1,4 +1,4 @@
-package com.example.buslinkdriver.ui.theme
+package com.example.buslinkdriver.theme
 
 import androidx.compose.ui.graphics.Color
 

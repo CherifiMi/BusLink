@@ -1,4 +1,4 @@
-package com.example.buslinkdriver.ui.theme
+package com.example.buslinkdriver.theme
 
 import android.app.Activity
 import android.os.Build
