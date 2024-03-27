@@ -75,6 +75,7 @@ import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.animation.camera
 import java.time.LocalTime
+import kotlin.random.Random
 
 @Composable
 fun mapItem(viewModel: MainViewModel = viewModel()) {
@@ -111,13 +112,16 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
 
         routs.forEach {
 
+            val randomColor = Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256)).toArgb()
+
             PolylineAnnotation(
                 points = it,
                 lineJoin = LineJoin.ROUND,
                 lineBorderColorInt = Color.Black.toArgb(),
                 lineBorderWidth = 2.0,
-                lineColorInt = Color.Black.toArgb(),
+                lineColorInt = randomColor,
                 lineWidth = 8.0,
+                lineBlur = 1.0
             )
 
             it.forEach { point ->
@@ -128,7 +132,12 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
                 )
                 CircleAnnotation(
                     point = point,
-                    circleRadius = 5.0,
+                    circleRadius = 8.0,
+                    circleColorInt = randomColor,
+                )
+                CircleAnnotation(
+                    point = point,
+                    circleRadius = 4.0,
                     circleColorInt = Color.White.toArgb(),
                 )
             }
@@ -228,6 +237,7 @@ fun BottomSheet(viewModel: MainViewModel = viewModel()) {
                         viewModel.onEvent(Event.SelectItem(it))
                     }
                 }
+                item { Spacer(modifier = Modifier.height(200.dp)) }
             }
         }
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
