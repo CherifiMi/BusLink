@@ -2,36 +2,43 @@ package com.example.buslinkdriver
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.buslinkdriver.util.extensions.BusItem
+import com.example.buslinkdriver.util.extensions.convertToPoints
+import com.example.buslinkdriver.util.extensions.optimizeRoute
+import com.example.buslinkdriver.util.extensions.update
 import com.example.buslinkdriver.util.startTracking
 import com.example.buslinkdriver.util.stopTracking
-import com.example.buslinkdriver.util.extensions.update
-import com.example.common.data.Buses
-import com.example.common.data.BusesItem
 import com.example.common.getBusesInfo
 import com.example.common.sendDataToWebSocket
+import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 sealed class Event {
-    data class SelectItem(val it: BusesItem) : Event()
+    data class SelectItem(val it: BusItem) : Event()
     data class StartTracking(val context: Context) : Event()
     object SwitchMapShowing : Event()
 }
 
 data class BusLinkDriversState(
-    val buses: Buses = Buses(),
-    val selectedBuss: BusesItem? = null,
+    val buses: List<BusItem> = listOf(),
+    val selectedBuss: BusItem? = null,
     val location: Location? = null,
     val isMapShowing: Boolean = true,
-    val isTracking: Boolean = false
+    val isTracking: Boolean = false,
 )
+
+val TAG = "MITOTEST"
 
 @HiltViewModel
 class MainViewModel @Inject constructor() : ViewModel() {
@@ -40,8 +47,26 @@ class MainViewModel @Inject constructor() : ViewModel() {
     val state: State<BusLinkDriversState> = _state
 
     init {
+
         getBusesInfo {
-            _state.update { copy(buses = it) }
+            it.forEach { bus ->
+                optimizeRoute(
+                    bus.coords.convertToPoints()
+                ) { newRoute ->
+                    BusItem(
+                        bus = bus.bus,
+                        bus_num = bus.bus_num,
+                        coords = bus.coords.convertToPoints(),
+                        from = bus.from,
+                        stops = bus.stops,
+                        route = newRoute + Point.fromLngLat(5.7481969, 34.8455368),
+                        color = null,
+                        to = bus.to,
+                    ).let {
+                        _state.update { copy(buses = buses + it) }
+                    }
+                }
+            }
         }
     }
 
@@ -72,13 +97,13 @@ class MainViewModel @Inject constructor() : ViewModel() {
 
                         startTracking(
                             event.context,
-                            err = {err->
+                            err = { err ->
                                 _state.update { copy(isTracking = false, isMapShowing = true) }
                                 Toast.makeText(event.context, err, Toast.LENGTH_SHORT).show()
                             },
-                            update = { location->
+                            update = { location ->
                                 _state.update { copy(location = location) }
-                                viewModelScope.launch(Dispatchers.IO){
+                                viewModelScope.launch(Dispatchers.IO) {
                                     sendDataToWebSocket(
                                         state.value.selectedBuss!!.bus_num,
                                         "${location.longitude} ${location.latitude}"
@@ -93,7 +118,6 @@ class MainViewModel @Inject constructor() : ViewModel() {
             Event.SwitchMapShowing -> _state.update { copy(isMapShowing = !isMapShowing) }
         }
     }
-
 }
 
 

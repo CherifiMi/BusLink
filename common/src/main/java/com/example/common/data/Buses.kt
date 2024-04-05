@@ -1,6 +1,8 @@
 package com.example.common.data
 
+
 class Buses : ArrayList<BusesItem>()
+
 data class BusesItem(
     val bus: String,
     val bus_num: Int,

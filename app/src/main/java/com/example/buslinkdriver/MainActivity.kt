@@ -3,11 +3,13 @@ package com.example.buslinkdriver
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -15,14 +17,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkdriver.theme.BusLinkDriverTheme
-import com.example.buslinkdriver.ui.BottomSheet
-import com.example.buslinkdriver.ui.mapItem
+import com.example.buslinkdriver.ui.components.BottomSheet
+import com.example.buslinkdriver.ui.components.mapItem
 import com.mapbox.common.MapboxOptions
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -51,18 +57,20 @@ class MainActivity : ComponentActivity() {
 fun App(viewModel: MainViewModel = viewModel()) {
     val state = viewModel.state.value
 
-    Column {
-        AnimatedVisibility(visible = state.isMapShowing) {
-            Box(
-                modifier = Modifier
-                    .background(Color.Blue)
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-            ) {
-                mapItem()
+    AnimatedVisibility(visible = state.buses.isNotEmpty()) {
+        Column {
+            AnimatedVisibility(visible = state.isMapShowing) {
+                Box(
+                    modifier = Modifier
+                        .background(Color.Blue)
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                ) {
+                    mapItem()
+                }
             }
+            BottomSheet()
         }
-        BottomSheet()
     }
 }
 
