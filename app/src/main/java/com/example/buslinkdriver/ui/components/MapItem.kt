@@ -10,6 +10,7 @@ import com.example.buslinkdriver.MainViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
 import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -18,6 +19,7 @@ import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.animation.camera
 
+@OptIn(MapboxExperimental::class)
 @Composable
 fun mapItem(viewModel: MainViewModel = viewModel()) {
 
@@ -51,26 +53,12 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
 
         routs.forEachIndexed { i, it ->
 
-            val randomColor = Color(
-                15f / 255,
-                19f / 255,
-                54f / 255,
-                if (state.selectedBuss?.bus_num == state.buses[i].bus_num || state.selectedBuss == null) 1f else 0.05f
-            ).toArgb()
-            val black = Color(
-                0f,
-                0f,
-                0f,
-                if (state.selectedBuss?.bus_num == state.buses[i].bus_num || state.selectedBuss == null) 1f else 0.05f
-            ).toArgb()
-            val white = Color(
-                1f,
-                1f,
-                1f,
-                if (state.selectedBuss?.bus_num == state.buses[i].bus_num || state.selectedBuss == null) 1f else 0.05f
-            ).toArgb()
+            val selectedBusNum = state.selectedBuss?.bus_num
+            val alphaValue = if (selectedBusNum == null || selectedBusNum == state.buses[i].bus_num) 1f else 0.05f
 
-
+            val randomColor = Color(15f / 255, 19f / 255, 54f / 255, alphaValue).toArgb()
+            val black = Color(0f, 0f, 0f, alphaValue).toArgb()
+            val white = Color(1f, 1f, 1f, alphaValue).toArgb()
 
             PolylineAnnotation(
                 points = state.buses[i].route,
@@ -106,7 +94,7 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
             )
             CircleAnnotation(
                 point = Point.fromLngLat(5.7481969, 34.8455368),
-                circleRadius = 15.0,
+                circleRadius = 13.0,
                 circleColorInt = white,
             )
         }
