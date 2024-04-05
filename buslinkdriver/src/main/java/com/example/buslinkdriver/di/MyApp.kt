@@ -1,4 +1,4 @@
-package com.example.buslinkdriver.util.di
+package com.example.buslinkdriver.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

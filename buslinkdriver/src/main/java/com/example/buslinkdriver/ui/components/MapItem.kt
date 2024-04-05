@@ -31,7 +31,7 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
         Modifier.fillMaxSize(),
         mapViewportState = MapViewportState().apply {
             setCameraOptions {
-                zoom(11.0)
+                zoom(12.0)
                 center(Point.fromLngLat(5.7481969, 34.8455368))
                 pitch(0.0)
                 bearing(0.0)
@@ -41,7 +41,7 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
 
         MapEffect(state.selectedBuss) { mapView ->
             state.selectedBuss?.let {
-                val polygon = Polygon.fromLngLats(listOf(it.coords))
+                val polygon = Polygon.fromLngLats(listOf(it.route))
                 val cameraPosition =
                     mapView.mapboxMap.cameraForGeometry(
                         polygon,
@@ -54,7 +54,7 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
         routs.forEachIndexed { i, it ->
 
             val selectedBusNum = state.selectedBuss?.bus_num
-            val alphaValue = if (selectedBusNum == null || selectedBusNum == state.buses[i].bus_num) 1f else 0.05f
+            val alphaValue = if (selectedBusNum == null || selectedBusNum == state.buses[i].bus_num) 1f else 0f
 
             val randomColor = Color(15f / 255, 19f / 255, 54f / 255, alphaValue).toArgb()
             val black = Color(0f, 0f, 0f, alphaValue).toArgb()

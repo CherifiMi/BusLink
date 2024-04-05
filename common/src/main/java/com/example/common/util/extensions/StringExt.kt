@@ -1,4 +1,4 @@
-package com.example.buslinkdriver.util.extensions
+package com.example.common.util.extensions
 
 import android.os.Build
 import androidx.annotation.RequiresApi

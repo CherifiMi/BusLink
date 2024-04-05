@@ -40,9 +40,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkdriver.MainViewModel
 import com.example.buslinkdriver.R
 import com.example.buslinkdriver.theme.UberFontFamily
-import com.example.buslinkdriver.util.extensions.BusItem
-import com.example.buslinkdriver.util.extensions.capitalizeFirst
-import com.example.buslinkdriver.util.extensions.stringToListStops
+import com.example.common.util.extensions.BusItem
+import com.example.common.util.extensions.capitalizeFirst
+import com.example.common.util.extensions.stringToListStops
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

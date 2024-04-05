@@ -1,6 +1,14 @@
-package com.example.common
+package com.example.common.util
 
+import android.content.Context
+import android.location.Location
 import android.util.Log
+import com.birjuvachhani.locus.Locus
+import com.birjuvachhani.locus.extensions.isDenied
+import com.birjuvachhani.locus.extensions.isFatal
+import com.birjuvachhani.locus.extensions.isPermanentlyDenied
+import com.birjuvachhani.locus.extensions.isSettingsDenied
+import com.birjuvachhani.locus.extensions.isSettingsResolutionFailed
 import com.example.common.data.Buses
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -48,4 +56,28 @@ suspend fun readFromWebSocket(function: (it: String) -> Unit) = withContext(Disp
             Log.w("MITOTEST", "Failed to read value.", error.toException())
         }
     })
+}
+
+fun startTracking(context: Context, update: (location: Location) -> Unit, err: (err: String) -> Unit){
+        Locus.startLocationUpdates(context = context).observeForever { result ->
+            result.location?.let { location ->
+                update(location)
+            }
+            result.error?.let { error ->
+                val err = when {
+                    error.isDenied -> "Permission denied"
+                    error.isPermanentlyDenied -> "Permission is permanently denied"
+                    error.isFatal -> "Something else went wrong!"
+                    error.isSettingsDenied -> " Settings resolution denied by the user "
+                    error.isSettingsResolutionFailed -> "Settings resolution failed!"
+                    else -> "Something went wrong"
+                }
+                err(err)
+            }
+        }
+    }
+
+suspend fun stopTracking(busId: Int) = withContext(Dispatchers.IO) {
+    Locus.stopLocationUpdates()
+    sendDataToWebSocket(busId, "-1")
 }

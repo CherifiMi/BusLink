@@ -2,26 +2,23 @@ package com.example.buslinkdriver
 
 import android.content.Context
 import android.location.Location
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.buslinkdriver.util.extensions.BusItem
-import com.example.buslinkdriver.util.extensions.convertToPoints
-import com.example.buslinkdriver.util.extensions.optimizeRoute
-import com.example.buslinkdriver.util.extensions.update
-import com.example.buslinkdriver.util.startTracking
-import com.example.buslinkdriver.util.stopTracking
-import com.example.common.getBusesInfo
-import com.example.common.sendDataToWebSocket
+import com.example.common.util.extensions.BusItem
+import com.example.common.util.extensions.convertToPoints
+import com.example.common.util.extensions.optimizeRoute
+import com.example.common.util.extensions.update
+import com.example.common.util.startTracking
+import com.example.common.util.stopTracking
+import com.example.common.util.getBusesInfo
+import com.example.common.util.sendDataToWebSocket
 import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 sealed class Event {
@@ -37,8 +34,6 @@ data class BusLinkDriversState(
     val isMapShowing: Boolean = true,
     val isTracking: Boolean = false,
 )
-
-val TAG = "MITOTEST"
 
 @HiltViewModel
 class MainViewModel @Inject constructor() : ViewModel() {
@@ -59,7 +54,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
                         coords = bus.coords.convertToPoints(),
                         from = bus.from,
                         stops = bus.stops,
-                        route = newRoute + Point.fromLngLat(5.7481969, 34.8455368),
+                        route = if(bus.bus.last() == 'l') newRoute.plusElement(Point.fromLngLat(5.7481969, 34.8455368)) else newRoute,
                         color = null,
                         to = bus.to,
                     ).let {

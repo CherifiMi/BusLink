@@ -1,6 +1,5 @@
-package com.example.buslinkdriver.util.extensions
+package com.example.common.util.extensions
 
-import androidx.compose.ui.graphics.Color
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.optimization.v1.MapboxOptimization
 import com.mapbox.api.optimization.v1.models.OptimizationResponse
@@ -43,13 +42,3 @@ fun optimizeRoute(oldRoute: List<Point>, f:(newRoute: List<Point>)->Unit){
 }
 
 
-data class BusItem(
-    val bus: String,
-    val bus_num: Int,
-    val coords: List<Point>,
-    val from: String,
-    val stops: String,
-    val route: List<Point>,
-    val color: Color?,
-    val to: String
-)

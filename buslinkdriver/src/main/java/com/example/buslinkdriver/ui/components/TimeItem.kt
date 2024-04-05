@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.buslinkdriver.theme.UberFontFamily
-import com.example.buslinkdriver.util.extensions.findNextAvailableTime
+import com.example.common.util.extensions.findNextAvailableTime
 import java.time.LocalTime
 
 @Composable
