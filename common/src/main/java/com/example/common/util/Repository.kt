@@ -40,9 +40,9 @@ suspend fun sendDataToWebSocket(bus_id: Int, s: String) = withContext(Dispatcher
     myRef.setValue(s)
 }
 
-suspend fun readFromWebSocket(function: (it: String) -> Unit) = withContext(Dispatchers.IO){
+suspend fun readFromWebSocket(bus_id: Int,function: (it: String) -> Unit) = withContext(Dispatchers.IO){
     val database = Firebase.database
-    val myRef = database.getReference("132")
+    val myRef = database.getReference(bus_id.toString())
 
     myRef.addValueEventListener(object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
