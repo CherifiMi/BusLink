@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BusLink</string>
+    <string name="mapbox_public_token">pk.eyJ1IjoiZGEtbWl0byIsImEiOiJjbHUydG85Z2EwdGE3Mm1ueDg5d2VzenlrIn0.coUuklypqsJ8srkSOy9xlw</string>
 </resources>

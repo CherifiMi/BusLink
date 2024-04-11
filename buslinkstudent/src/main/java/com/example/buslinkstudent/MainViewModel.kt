@@ -5,6 +5,8 @@ import android.location.Location
 import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.common.util.extensions.BusItem
@@ -19,6 +21,7 @@ import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Math.random
 import javax.inject.Inject
 
 sealed class Event {
@@ -45,6 +48,9 @@ class MainViewModel @Inject constructor() : ViewModel() {
 
         getBusesInfo {
             it.forEach { bus ->
+
+                val randomColor = Color((0..255).random(),(0..255).random(),(0..255).random())
+
                 optimizeRoute(
                     bus.coords.convertToPoints()
                 ) { newRoute ->
@@ -55,7 +61,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
                         from = bus.from,
                         stops = bus.stops,
                         route = if(bus.bus.last() == 'l') newRoute.plusElement(Point.fromLngLat(5.7481969, 34.8455368)) else newRoute,
-                        color = null,
+                        color = randomColor,
                         to = bus.to,
                     ).let {
                         _state.update { copy(buses = buses + it) }
