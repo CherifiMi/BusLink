@@ -49,7 +49,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
         getBusesInfo {
             it.forEach { bus ->
 
-                val randomColor = Color((0..255).random(),(0..255).random(),(0..255).random())
+                val randomColor = Color((0..10).random(),(0..100).random(),(0..255).random())
 
                 optimizeRoute(
                     bus.coords.convertToPoints()

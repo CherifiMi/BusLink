@@ -101,7 +101,7 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
 
             val black = Color(0f, 0f, 0f, alphaValue).toArgb()
             val white = Color(1f, 1f, 1f, alphaValue).toArgb()
-            val randomColor = state.buses[i].color!!.toArgb()
+            val randomColor = state.buses[i].color!!.copy(alpha = alphaValue).toArgb()
 
             PolylineAnnotation(
                 points = state.buses[i].route,
