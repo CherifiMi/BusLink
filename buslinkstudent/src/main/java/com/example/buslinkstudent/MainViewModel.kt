@@ -49,7 +49,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
         getBusesInfo {
             it.forEach { bus ->
 
-                val randomColor = Color((0..10).random(),(0..100).random(),(0..255).random())
+                val randomColor = Color((0..255).random(),(0..255).random(),(0..255).random())
 
                 optimizeRoute(
                     bus.coords.convertToPoints()
@@ -60,7 +60,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
                         coords = bus.coords.convertToPoints(),
                         from = bus.from,
                         stops = bus.stops,
-                        route = if(bus.bus.last() == 'l') newRoute.plusElement(Point.fromLngLat(5.7481969, 34.8455368)) else newRoute,
+                        route = newRoute,
                         color = randomColor,
                         to = bus.to,
                     ).let {

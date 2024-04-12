@@ -54,7 +54,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
                         coords = bus.coords.convertToPoints(),
                         from = bus.from,
                         stops = bus.stops,
-                        route = if(bus.bus.last() == 'l') newRoute.plusElement(Point.fromLngLat(5.7481969, 34.8455368)) else newRoute,
+                        route = newRoute,
                         color = null,
                         to = bus.to,
                     ).let {

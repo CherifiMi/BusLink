@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkstudent.theme.BusLinkStudentTheme
@@ -24,15 +27,20 @@ import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapboxExperimental
+import com.mapbox.maps.extension.compose.DefaultSettingsProvider
+import com.mapbox.maps.extension.compose.DefaultSettingsProvider.createDefault2DPuck
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
@@ -53,9 +61,7 @@ class MainActivity : ComponentActivity() {
                     runBlocking(Dispatchers.IO){
                         readFromWebSocket(132){ txt = it }
                     }*/
-
                     mapItem()
-
                 }
             }
         }
@@ -70,18 +76,30 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
 
     val routs = state.buses.map { it.coords }
 
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            zoom(12.0)
+            center(Point.fromLngLat(5.7481969, 34.8455368))
+            pitch(0.0)
+            bearing(0.0)
+        }
+    }
+
+    val context = LocalContext.current
+
     MapboxMap(
         Modifier.fillMaxSize(),
-        mapViewportState = MapViewportState().apply {
-            setCameraOptions {
-                zoom(12.0)
-                center(Point.fromLngLat(5.7481969, 34.8455368))
-                pitch(0.0)
-                bearing(0.0)
-            }
-        },
+        mapViewportState = mapViewportState,
+        locationComponentSettings = DefaultSettingsProvider.defaultLocationComponentSettings(
+            context,
+            LocalDensity.current.density
+        ).toBuilder()
+            .setLocationPuck(createDefault2DPuck(withBearing = true))
+            .setPuckBearingEnabled(true)
+            .setPuckBearing(PuckBearing.HEADING)
+            .setEnabled(true)
+            .build()
     ) {
-
         MapEffect(state.selectedBuss) { mapView ->
             state.selectedBuss?.let {
                 val polygon = Polygon.fromLngLats(listOf(it.route))
@@ -97,49 +115,31 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
         routs.forEachIndexed { i, it ->
 
             val selectedBusNum = state.selectedBuss?.bus_num
-            val alphaValue = if (selectedBusNum == null || selectedBusNum == state.buses[i].bus_num) 1f else 0f
-
-            val black = Color(0f, 0f, 0f, alphaValue).toArgb()
-            val white = Color(1f, 1f, 1f, alphaValue).toArgb()
+            val alphaValue =
+                if (selectedBusNum == null || selectedBusNum == state.buses[i].bus_num) 1f else 0f
             val randomColor = state.buses[i].color!!.copy(alpha = alphaValue).toArgb()
 
             PolylineAnnotation(
                 points = state.buses[i].route,
                 lineJoin = LineJoin.ROUND,
-                lineBorderColorInt = black,
-                lineBorderWidth = 2.0,
                 lineColorInt = randomColor,
                 lineWidth = 8.0,
-                lineBlur = 1.0
             )
 
             it.forEach { point ->
                 CircleAnnotation(
                     point = point,
-                    circleRadius = 8.0,
-                    circleColorInt = black,
-                )
-                CircleAnnotation(
-                    point = point,
-                    circleRadius = 6.0,
+                    circleRadius = 7.0,
                     circleColorInt = randomColor,
                 )
-                CircleAnnotation(
-                    point = point,
-                    circleRadius = 3.0,
-                    circleColorInt = white,
-                )
             }
-            CircleAnnotation(
-                point = Point.fromLngLat(5.7481969, 34.8455368),
-                circleRadius = 17.0,
-                circleColorInt = black,
-            )
-            CircleAnnotation(
-                point = Point.fromLngLat(5.7481969, 34.8455368),
-                circleRadius = 13.0,
-                circleColorInt = white,
-            )
         }
+
+
+        LaunchedEffect(Unit) {
+            delay(5000)
+            mapViewportState.transitionToFollowPuckState()
+        }
+
     }
 }
