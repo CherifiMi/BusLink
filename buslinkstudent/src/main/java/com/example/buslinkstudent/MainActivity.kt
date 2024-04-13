@@ -1,6 +1,7 @@
 package com.example.buslinkstudent
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -69,6 +70,8 @@ import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.compass.generated.CompassSettings
+import com.mapbox.maps.plugin.logo.generated.LogoSettings
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 
@@ -84,40 +87,50 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     /*var txt by remember { mutableStateOf("text") }
-                    Text(text = txt)
+Text(text = txt)
 
-                    runBlocking(Dispatchers.IO){
-                        readFromWebSocket(132){ txt = it }
-                    }*/
-                    val scaffoldState = rememberBottomSheetScaffoldState()
-
-                    Box {
-                        BottomSheetScaffold(
-                            scaffoldState = scaffoldState,
-                            sheetPeekHeight = 144.dp,
-                            sheetContent = { BottomSheetContent(scaffoldState) },
-                            sheetContainerColor = Color.Transparent,
-                            sheetDragHandle = { BottomSheetButtons() },
-                            sheetShadowElevation = 0.dp
-                        ) {
-                            mapItem()
-                        }
-
-                        SplashScreen()
-                    }
+runBlocking(Dispatchers.IO){
+    readFromWebSocket(132){ txt = it }
+}*/
+                    
+                    App()
                 }
             }
         }
     }
-
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun App(viewModel: MainViewModel = viewModel()) {
+    
+    val state = viewModel.state.value
+    val scaffoldState = rememberBottomSheetScaffoldState()
+
+    Box {
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetPeekHeight = 144.dp,
+            sheetContent = { BottomSheetContent(scaffoldState) },
+            sheetContainerColor = Color.Transparent,
+            sheetDragHandle = { BottomSheetButtons() },
+            sheetShadowElevation = 0.dp
+        ) {
+            mapItem()
+        }
+        SplashScreen()
+    }
+}
 
 @Composable
 fun SplashScreen(viewModel: MainViewModel = viewModel()) {
 
     val state = viewModel.state.value
+    val context = LocalContext.current
+
+    viewModel.onEvent(Event.StartTracking(context))
 
     var showSplashScreen by remember {
         mutableStateOf(true)
@@ -136,27 +149,12 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Icon(
                 painter = painterResource(id = R.drawable.ic_students_foreground),
                 contentDescription = null,
                 tint = Color.Blue,
                 modifier = Modifier.size(160.dp)
             )
-
-            Text(
-                text = "BusLink",
-                modifier = Modifier
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    fontFamily = UberFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 24.sp,
-                    color = Color.Blue
-                )
-            )
-
         }
     }
 }
@@ -256,7 +254,8 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
         locationComponentSettings = DefaultSettingsProvider.defaultLocationComponentSettings(
             context,
             LocalDensity.current.density
-        ).toBuilder()
+        )
+            .toBuilder()
             .setLocationPuck(createDefault2DPuck(withBearing = true))
             .setPuckBearingEnabled(true)
             .setPuckBearing(PuckBearing.HEADING)
@@ -299,8 +298,8 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
         }
 
 
-        LaunchedEffect(Unit) {
-            delay(5000)
+        LaunchedEffect(true) {
+            delay(7000)
             mapViewportState.transitionToFollowPuckState()
         }
 

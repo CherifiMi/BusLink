@@ -76,43 +76,16 @@ class MainViewModel @Inject constructor() : ViewModel() {
             is Event.SelectItem -> _state.update { copy(selectedBuss = event.it) }
             is Event.StartTracking -> {
                 viewModelScope.launch {
-                    if (state.value.selectedBuss == null) {
-                        Toast.makeText(
-                            event.context,
-                            "You need to select what bus you are driving.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@launch
-                    }
-                    if (state.value.isTracking) {
-                        _state.update { copy(isTracking = false, isMapShowing = true) }
-                        stopTracking(state.value.selectedBuss!!.bus_num)
-                    } else {
-                        _state.update {
-                            copy(
-                                isTracking = true,
-                                isMapShowing = false,
-                                location = location
-                            )
+                    startTracking(
+                        event.context,
+                        err = { err ->
+                            _state.update { copy(isTracking = false, isMapShowing = true) }
+                            Toast.makeText(event.context, err, Toast.LENGTH_SHORT).show()
+                        },
+                        update = { location ->
+                            _state.update { copy(location = location) }
                         }
-
-                        startTracking(
-                            event.context,
-                            err = { err ->
-                                _state.update { copy(isTracking = false, isMapShowing = true) }
-                                Toast.makeText(event.context, err, Toast.LENGTH_SHORT).show()
-                            },
-                            update = { location ->
-                                _state.update { copy(location = location) }
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    sendDataToWebSocket(
-                                        state.value.selectedBuss!!.bus_num,
-                                        "${location.longitude} ${location.latitude}"
-                                    )
-                                }
-                            }
-                        )
-                    }
+                    )
                 }
             }
 
