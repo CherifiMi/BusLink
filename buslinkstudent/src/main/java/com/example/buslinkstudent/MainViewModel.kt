@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.common.util.extensions.BusItem
@@ -14,25 +13,23 @@ import com.example.common.util.extensions.convertToPoints
 import com.example.common.util.extensions.optimizeRoute
 import com.example.common.util.extensions.update
 import com.example.common.util.startTracking
-import com.example.common.util.stopTracking
 import com.example.common.util.getBusesInfo
-import com.example.common.util.sendDataToWebSocket
 import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.CameraState
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.Math.random
 import javax.inject.Inject
 
 sealed class Event {
     data class SelectItem(val it: BusItem) : Event()
     data class StartTracking(val context: Context) : Event()
     object SwitchMapShowing : Event()
+    object GoToHome : Event()
+    object GoToPuck : Event()
 }
 
 data class BusLinkDriversState @OptIn(MapboxExperimental::class) constructor(
@@ -103,6 +100,14 @@ class MainViewModel @Inject constructor() : ViewModel() {
             }
 
             Event.SwitchMapShowing -> _state.update { copy(isMapShowing = !isMapShowing) }
+            Event.GoToHome -> {
+                val cameraOption = CameraOptions.Builder().center(Point.fromLngLat(5.7481969, 34.8455368)).zoom(12.0).bearing(0.0).pitch(0.0).build()
+                state.value.mapViewportState.flyTo(cameraOption)
+                _state.update { copy(selectedBuss = null) }
+            }
+            Event.GoToPuck -> {
+                state.value.mapViewportState.transitionToFollowPuckState { state.value.mapViewportState.idle() }
+            }
         }
     }
 }

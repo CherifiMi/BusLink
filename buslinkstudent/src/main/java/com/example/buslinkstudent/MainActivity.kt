@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,7 +54,6 @@ import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
 import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.CameraState
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider
@@ -165,15 +166,14 @@ fun BottomSheetButtons(viewModel: MainViewModel = viewModel()) {
         Row {
             IconButton(
                 onClick = {
-                    val cameraOption = CameraOptions.Builder().center(Point.fromLngLat(5.7481969, 34.8455368)).zoom(12.0).bearing(0.0).pitch(0.0).build()
-                    state.mapViewportState.flyTo(cameraOption)
+                    viewModel.onEvent(Event.GoToHome)
                 },
                 Modifier.size(48.dp)
             ) {
-                Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
+                Icon(imageVector = Icons.Filled.Home, contentDescription = null)
             }
-            IconButton(onClick = { state.mapViewportState.transitionToFollowPuckState { state.mapViewportState.idle() } }, Modifier.size(48.dp)) {
-                Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
+            IconButton(onClick = { viewModel.onEvent(Event.GoToPuck) }, Modifier.size(48.dp)) {
+                Icon(imageVector = Icons.Filled.LocationOn, contentDescription = null)
             }
         }
         IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
