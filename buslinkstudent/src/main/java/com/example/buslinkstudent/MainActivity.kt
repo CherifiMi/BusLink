@@ -1,7 +1,6 @@
 package com.example.buslinkstudent
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -36,7 +35,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,31 +45,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkstudent.theme.BusLinkStudentTheme
-import com.example.buslinkstudent.theme.UberFontFamily
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.CameraState
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider.createDefault2DPuck
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
-import com.mapbox.maps.plugin.compass.generated.CompassSettings
-import com.mapbox.maps.plugin.logo.generated.LogoSettings
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 
@@ -94,7 +86,7 @@ Text(text = txt)
 runBlocking(Dispatchers.IO){
     readFromWebSocket(132){ txt = it }
 }*/
-                    
+
                     App()
                 }
             }
@@ -105,7 +97,7 @@ runBlocking(Dispatchers.IO){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(viewModel: MainViewModel = viewModel()) {
-    
+
     val state = viewModel.state.value
     val scaffoldState = rememberBottomSheetScaffoldState()
 
@@ -136,7 +128,7 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
         mutableStateOf(true)
     }
 
-    LaunchedEffect(state.buses){
+    LaunchedEffect(state.buses) {
         delay(2000)
         showSplashScreen = false
     }
@@ -159,8 +151,11 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
     }
 }
 
+@OptIn(MapboxExperimental::class)
 @Composable
-fun BottomSheetButtons() {
+fun BottomSheetButtons(viewModel: MainViewModel = viewModel()) {
+    val state = viewModel.state.value
+
     Row(
         Modifier
             .fillMaxWidth()
@@ -168,10 +163,16 @@ fun BottomSheetButtons() {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row {
-            IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
+            IconButton(
+                onClick = {
+                    val cameraOption = CameraOptions.Builder().center(Point.fromLngLat(5.7481969, 34.8455368)).zoom(12.0).bearing(0.0).pitch(0.0).build()
+                    state.mapViewportState.flyTo(cameraOption)
+                },
+                Modifier.size(48.dp)
+            ) {
                 Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
             }
-            IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
+            IconButton(onClick = { state.mapViewportState.transitionToFollowPuckState { state.mapViewportState.idle() } }, Modifier.size(48.dp)) {
                 Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
             }
         }
@@ -192,7 +193,6 @@ fun ColumnScope.BottomSheetContent(
 ) {
 
     val state = viewModel.state.value
-    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -234,23 +234,18 @@ fun ColumnScope.BottomSheetContent(
 fun mapItem(viewModel: MainViewModel = viewModel()) {
 
     val state = viewModel.state.value
-
     val routs = state.buses.map { it.coords }
-
-    val mapViewportState = rememberMapViewportState {
-        setCameraOptions {
-            zoom(12.0)
-            center(Point.fromLngLat(5.7481969, 34.8455368))
-            pitch(0.0)
-            bearing(0.0)
-        }
-    }
 
     val context = LocalContext.current
 
+    LaunchedEffect(Unit) {
+        delay(7000)
+        state.mapViewportState.transitionToFollowPuckState { state.mapViewportState.idle() }
+    }
+
     MapboxMap(
         Modifier.fillMaxSize(),
-        mapViewportState = mapViewportState,
+        mapViewportState = state.mapViewportState,
         locationComponentSettings = DefaultSettingsProvider.defaultLocationComponentSettings(
             context,
             LocalDensity.current.density
@@ -273,7 +268,6 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
                 mapView.camera.easeTo(cameraPosition)
             }
         }
-
         routs.forEachIndexed { i, it ->
 
             val selectedBusNum = state.selectedBuss?.bus_num
@@ -296,12 +290,5 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
                 )
             }
         }
-
-
-        LaunchedEffect(true) {
-            delay(7000)
-            mapViewportState.transitionToFollowPuckState()
-        }
-
     }
 }

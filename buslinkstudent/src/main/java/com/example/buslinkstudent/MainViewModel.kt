@@ -18,6 +18,10 @@ import com.example.common.util.stopTracking
 import com.example.common.util.getBusesInfo
 import com.example.common.util.sendDataToWebSocket
 import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraState
+import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.MapboxExperimental
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,12 +35,21 @@ sealed class Event {
     object SwitchMapShowing : Event()
 }
 
-data class BusLinkDriversState(
+data class BusLinkDriversState @OptIn(MapboxExperimental::class) constructor(
     val buses: List<BusItem> = listOf(),
     val selectedBuss: BusItem? = null,
     val location: Location? = null,
     val isMapShowing: Boolean = true,
     val isTracking: Boolean = false,
+    val mapViewportState: MapViewportState = MapViewportState(
+        CameraState(
+            Point.fromLngLat(5.7481969, 34.8455368),
+            EdgeInsets(0.0,0.0,0.0,0.0),
+            12.0,
+            0.0,
+            0.0
+        )
+    )
 )
 
 @HiltViewModel
