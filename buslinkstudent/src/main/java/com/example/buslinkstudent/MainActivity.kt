@@ -132,6 +132,8 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
     LaunchedEffect(state.buses) {
         delay(2000)
         showSplashScreen = false
+        delay(2000)
+        state.mapViewportState.transitionToFollowPuckState { state.mapViewportState.idle() }
     }
 
     AnimatedVisibility(visible = showSplashScreen, exit = fadeOut()) {
@@ -237,11 +239,6 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
     val routs = state.buses.map { it.coords }
 
     val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        delay(7000)
-        state.mapViewportState.transitionToFollowPuckState { state.mapViewportState.idle() }
-    }
 
     MapboxMap(
         Modifier.fillMaxSize(),
