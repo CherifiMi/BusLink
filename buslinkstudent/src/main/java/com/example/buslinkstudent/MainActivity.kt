@@ -3,21 +3,28 @@ package com.example.buslinkstudent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,17 +32,28 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkstudent.theme.BusLinkStudentTheme
+import com.example.buslinkstudent.theme.UberFontFamily
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
@@ -53,7 +71,6 @@ import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -73,60 +90,145 @@ class MainActivity : ComponentActivity() {
                     runBlocking(Dispatchers.IO){
                         readFromWebSocket(132){ txt = it }
                     }*/
-
                     val scaffoldState = rememberBottomSheetScaffoldState()
 
-                    BottomSheetScaffold(
-                        scaffoldState = scaffoldState,
-                        sheetPeekHeight = 158.dp,
-                        sheetContent = { BottomSheetContent(scaffoldState) }
-                    ) {
-                        mapItem()
+                    Box {
+                        BottomSheetScaffold(
+                            scaffoldState = scaffoldState,
+                            sheetPeekHeight = 144.dp,
+                            sheetContent = { BottomSheetContent(scaffoldState) },
+                            sheetContainerColor = Color.Transparent,
+                            sheetDragHandle = { BottomSheetButtons() },
+                            sheetShadowElevation = 0.dp
+                        ) {
+                            mapItem()
+                        }
+
+                        SplashScreen()
                     }
                 }
             }
+        }
+    }
+
+}
+
+
+@Composable
+fun SplashScreen(viewModel: MainViewModel = viewModel()) {
+
+    val state = viewModel.state.value
+
+    var showSplashScreen by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(state.buses){
+        delay(2000)
+        showSplashScreen = false
+    }
+
+    AnimatedVisibility(visible = showSplashScreen, exit = fadeOut()) {
+        Column(
+            Modifier
+                .background(Color.Black)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_students_foreground),
+                contentDescription = null,
+                tint = Color.Blue,
+                modifier = Modifier.size(160.dp)
+            )
+
+            Text(
+                text = "BusLink",
+                modifier = Modifier
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    fontFamily = UberFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 24.sp,
+                    color = Color.Blue
+                )
+            )
+
+        }
+    }
+}
+
+@Composable
+fun BottomSheetButtons() {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row {
+            IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
+                Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
+            }
+            IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
+                Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
+            }
+        }
+        IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_students_foreground),
+                contentDescription = null
+            )
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.BottomSheetContent(scaffoldState: BottomSheetScaffoldState, viewModel: MainViewModel = viewModel() ) {
+fun ColumnScope.BottomSheetContent(
+    scaffoldState: BottomSheetScaffoldState,
+    viewModel: MainViewModel = viewModel()
+) {
 
     val state = viewModel.state.value
     val scope = rememberCoroutineScope()
 
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color.Transparent, Color.White)
+                )
+            )
+    )
+
     LazyRow(
         Modifier
+            .background(Color.White)
             .fillMaxWidth()
-            .background(Color.Red)
-            .height(128.dp)
+            .height(64.dp)
     ) {
-        items(state.buses){
+        items(state.buses) {
             TextButton(onClick = { viewModel.onEvent(Event.SelectItem(it)) }) {
                 Text(text = it.bus_num.toString(), color = it.color!!)
             }
         }
     }
-    
-    
+
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(64.dp),
+            .height(200.dp)
+            .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Sheet content")
-        Spacer(Modifier.height(20.dp))
-        Button(
-            onClick = {
-                scope.launch { scaffoldState.bottomSheetState.partialExpand() }
-            }
-        ) {
-            Text("Click to collapse sheet")
-        }
+        //scope.launch { scaffoldState.bottomSheetState.partialExpand() }
     }
-
 }
 
 @OptIn(MapboxExperimental::class)

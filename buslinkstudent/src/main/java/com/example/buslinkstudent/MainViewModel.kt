@@ -20,6 +20,7 @@ import com.example.common.util.sendDataToWebSocket
 import com.mapbox.geojson.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.random
 import javax.inject.Inject
@@ -45,7 +46,6 @@ class MainViewModel @Inject constructor() : ViewModel() {
     val state: State<BusLinkDriversState> = _state
 
     init {
-
         getBusesInfo {
             it.forEach { bus ->
 
