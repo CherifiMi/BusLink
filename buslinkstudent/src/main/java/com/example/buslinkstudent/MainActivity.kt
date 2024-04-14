@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +28,8 @@ import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +51,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColor
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkstudent.theme.BusLinkStudentTheme
 import com.mapbox.common.MapboxOptions
@@ -56,6 +60,8 @@ import com.mapbox.geojson.Polygon
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapboxExperimental
+import com.mapbox.maps.MapboxStyleManager
+import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider.createDefault2DPuck
 import com.mapbox.maps.extension.compose.MapEffect
@@ -63,6 +69,7 @@ import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
 import dagger.hilt.android.AndroidEntryPoint
@@ -132,7 +139,7 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
     LaunchedEffect(state.buses) {
         delay(2000)
         showSplashScreen = false
-        delay(2000)
+        delay(3000)
         state.mapViewportState.transitionToFollowPuckState { state.mapViewportState.idle() }
     }
 
@@ -147,7 +154,7 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_students_foreground),
                 contentDescription = null,
-                tint = Color.Blue,
+                tint = Color.White,
                 modifier = Modifier.size(160.dp)
             )
         }
@@ -157,32 +164,22 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
 @OptIn(MapboxExperimental::class)
 @Composable
 fun BottomSheetButtons(viewModel: MainViewModel = viewModel()) {
-    val state = viewModel.state.value
-
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.Start
     ) {
-        Row {
-            IconButton(
-                onClick = {
-                    viewModel.onEvent(Event.GoToHome)
-                },
-                Modifier.size(48.dp)
-            ) {
-                Icon(imageVector = Icons.Filled.Home, contentDescription = null)
-            }
-            IconButton(onClick = { viewModel.onEvent(Event.GoToPuck) }, Modifier.size(48.dp)) {
-                Icon(imageVector = Icons.Filled.LocationOn, contentDescription = null)
-            }
+        IconButton(
+            onClick = { viewModel.onEvent(Event.GoToHome) },
+            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White)
+        ) {
+            Icon(imageVector = Icons.Filled.Home, contentDescription = null)
         }
-        IconButton(onClick = { /*TODO*/ }, Modifier.size(48.dp)) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_students_foreground),
-                contentDescription = null
-            )
+        IconButton(onClick = { viewModel.onEvent(Event.GoToPuck) },
+            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White)
+        ) {
+            Icon(imageVector = Icons.Filled.LocationOn, contentDescription = null)
         }
     }
 }
@@ -196,7 +193,7 @@ fun ColumnScope.BottomSheetContent(
 
     val state = viewModel.state.value
 
-    Box(
+    /*Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(32.dp)
@@ -206,7 +203,7 @@ fun ColumnScope.BottomSheetContent(
                 )
             )
     )
-
+*/
     LazyRow(
         Modifier
             .background(Color.White)
@@ -237,7 +234,6 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
 
     val state = viewModel.state.value
     val routs = state.buses.map { it.coords }
-
     val context = LocalContext.current
 
     MapboxMap(
@@ -254,17 +250,23 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
             .setEnabled(true)
             .build()
     ) {
+
+        /*MapEffect {
+            it.mapboxMap.loadStyle(Style.LIGHT)
+        }*/
+
         MapEffect(state.selectedBuss) { mapView ->
             state.selectedBuss?.let {
                 val polygon = Polygon.fromLngLats(listOf(it.route))
                 val cameraPosition =
                     mapView.mapboxMap.cameraForGeometry(
                         polygon,
-                        EdgeInsets(50.0, 50.0, 50.0, 50.0),
+                        EdgeInsets(50.0, 50.0, 100.0, 50.0),
                     )
                 mapView.camera.easeTo(cameraPosition)
             }
         }
+
         routs.forEachIndexed { i, it ->
 
             val selectedBusNum = state.selectedBuss?.bus_num
