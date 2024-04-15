@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.BottomSheetScaffold
@@ -28,7 +26,6 @@ import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -51,17 +47,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColor
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkstudent.theme.BusLinkStudentTheme
+import com.example.common.util.extensions.findClosest
+import com.example.common.util.extensions.optimizeRoute
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
-import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapboxExperimental
-import com.mapbox.maps.MapboxStyleManager
-import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider.createDefault2DPuck
 import com.mapbox.maps.extension.compose.MapEffect
@@ -69,7 +63,6 @@ import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
-import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
 import dagger.hilt.android.AndroidEntryPoint
@@ -176,7 +169,8 @@ fun BottomSheetButtons(viewModel: MainViewModel = viewModel()) {
         ) {
             Icon(imageVector = Icons.Filled.Home, contentDescription = null)
         }
-        IconButton(onClick = { viewModel.onEvent(Event.GoToPuck) },
+        IconButton(
+            onClick = { viewModel.onEvent(Event.GoToPuck) },
             colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White)
         ) {
             Icon(imageVector = Icons.Filled.LocationOn, contentDescription = null)
@@ -289,5 +283,38 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
                 )
             }
         }
+
+        // me to stop
+
+        var myRout by remember {
+            mutableStateOf<List<Point>?>(null)
+        }
+
+        state.selectedBuss?.coords?.let {
+            state.location?.let { it1 ->
+                val myPoint = Point.fromLngLat(state.location.longitude, it1.latitude)
+                val stopNearMe: Point = findClosest(myPoint,it)
+                optimizeRoute(listOf(myPoint, stopNearMe)) {
+                    myRout = it
+                }
+            }
+
+            myRout?.let {
+                PolylineAnnotation(
+                    points = it,
+                    lineJoin = LineJoin.ROUND,
+                    lineColorInt = Color.Blue.toArgb(),
+                    lineOpacity = 0.2,
+                    lineWidth = 8.0,
+                )
+                PolylineAnnotation(
+                    points = it,
+                    lineJoin = LineJoin.ROUND,
+                    lineColorInt = Color.Blue.toArgb(),
+                    lineWidth = 2.0,
+                )
+            }
+        }
     }
 }
+

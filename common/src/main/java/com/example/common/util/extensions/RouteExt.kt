@@ -7,6 +7,7 @@ import com.mapbox.geojson.Point
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.math.sqrt
 
 fun optimizeRoute(oldRoute: List<Point>, f:(newRoute: List<Point>)->Unit){
 
@@ -41,4 +42,19 @@ fun optimizeRoute(oldRoute: List<Point>, f:(newRoute: List<Point>)->Unit){
     })
 }
 
+fun findClosest(myPoint: Point, listOfPoints: List<Point>): Point {
+    var d = 999999999.0
+    var i = 0
+    listOfPoints.forEachIndexed { index, point ->
+        val (pX, pY) = listOf(myPoint.longitude(), myPoint.latitude())
+        val (psX, psY) = listOf(point.longitude(), point.latitude())
 
+        val distance = sqrt((psY - pY) * (psY - pY) + (psX - pX) * (psX - pX))
+
+        if (distance<d) {
+            d = distance
+            i = index
+        }
+    }
+    return listOfPoints[i]
+}

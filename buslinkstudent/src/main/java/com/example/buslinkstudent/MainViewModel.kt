@@ -27,9 +27,9 @@ import javax.inject.Inject
 sealed class Event {
     data class SelectItem(val it: BusItem) : Event()
     data class StartTracking(val context: Context) : Event()
-    object SwitchMapShowing : Event()
-    object GoToHome : Event()
-    object GoToPuck : Event()
+    data object SwitchMapShowing : Event()
+    data object GoToHome : Event()
+    data object GoToPuck : Event()
 }
 
 data class BusLinkDriversState @OptIn(MapboxExperimental::class) constructor(
