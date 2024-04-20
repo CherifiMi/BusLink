@@ -7,6 +7,7 @@
 
 ### For Students:
 <img width="2745" alt="BusLinkStudents" src="https://github.com/CherifiMi/BusLink/assets/98290339/900ed047-97d9-4618-8c32-7ce8b979904d">
+
 - **Real-Time Bus Tracking**:
   - Pinpoint your bus's exact location on a live map.
   - Never miss a ride with real-time updates.
@@ -29,6 +30,7 @@
 
 ### For Drivers:
 <img width="2208" alt="busLinkDrivers" src="https://github.com/CherifiMi/BusLink/assets/98290339/10475359-571c-45cc-8b88-ad7af7bda35f">
+
 - **Live Location Transmission**:
   - Transmit real-time bus locations to the server.
   - Efficient route management.
