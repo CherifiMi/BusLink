@@ -29,11 +29,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,12 +48,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -66,6 +71,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.buslinkstudent.theme.BusLinkStudentTheme
+import com.example.buslinkstudent.theme.MyBlue
+import com.example.buslinkstudent.theme.TxtBlack
 import com.example.buslinkstudent.theme.UberFontFamily
 import com.example.buslinkstudent.ui.TimeList
 import com.example.common.util.extensions.calculateDistance
@@ -73,10 +80,12 @@ import com.example.common.util.extensions.capitalizeFirst
 import com.example.common.util.extensions.findClosest
 import com.example.common.util.extensions.optimizeRoute
 import com.example.common.util.extensions.stringToListStops
+import com.example.common.util.readFromWebSocket
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
 import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.ImageHolder
 import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider.createDefault2DPuck
@@ -85,10 +94,12 @@ import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.camera
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.text.DecimalFormat
 
 @AndroidEntryPoint
@@ -104,14 +115,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
-                    /*var txt by remember { mutableStateOf("text") }
-Text(text = txt)
-
-runBlocking(Dispatchers.IO){
-    readFromWebSocket(132){ txt = it }
-}*/
-
                     App()
                 }
             }
@@ -164,7 +167,7 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
     AnimatedVisibility(visible = showSplashScreen, exit = fadeOut()) {
         Column(
             Modifier
-                .background(Color.Black)
+                .background(Color.White)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -172,7 +175,7 @@ fun SplashScreen(viewModel: MainViewModel = viewModel()) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_students_foreground),
                 contentDescription = null,
-                tint = Color.White,
+                tint = MyBlue,
                 modifier = Modifier.size(160.dp)
             )
         }
@@ -191,15 +194,21 @@ fun BottomSheetButtons(viewModel: MainViewModel = viewModel()) {
     ) {
         IconButton(
             onClick = { viewModel.onEvent(Event.GoToHome) },
-            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White)
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.White,
+                contentColor = TxtBlack
+            )
         ) {
-            Icon(imageVector = Icons.Filled.Home, contentDescription = null)
+            Icon(imageVector = Icons.Rounded.Home, contentDescription = null)
         }
         IconButton(
             onClick = { viewModel.onEvent(Event.GoToPuck) },
-            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White)
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.White,
+                contentColor = TxtBlack
+            )
         ) {
-            Icon(imageVector = Icons.Filled.LocationOn, contentDescription = null)
+            Icon(imageVector = Icons.Rounded.LocationOn, contentDescription = null)
         }
     }
 }
@@ -213,7 +222,10 @@ fun ColumnScope.BottomSheetContent(
 ) {
     val state = viewModel.state.value
 
-    Card(elevation = CardDefaults.elevatedCardElevation(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(
+        elevation = CardDefaults.elevatedCardElevation(),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
         Spacer(
             modifier = Modifier
                 .height(8.dp)
@@ -226,6 +238,7 @@ fun ColumnScope.BottomSheetContent(
                 .fillMaxWidth()
                 .wrapContentHeight()
         ) {
+            item { Spacer(modifier = Modifier.size(24.dp)) }
             items(state.buses) {
                 val isSelected = state.selectedBuss?.bus_num == it.bus_num
 
@@ -233,13 +246,14 @@ fun ColumnScope.BottomSheetContent(
                     modifier = Modifier
                         .padding(8.dp)
                         .scale(if (!isSelected) 1f else 1.2f),
-                    colors = CardDefaults.cardColors(containerColor = if (isSelected) Color.Blue else Color.Transparent),
+                    colors = CardDefaults.cardColors(containerColor = if (isSelected) MyBlue else Color.Transparent),
                     onClick = { viewModel.onEvent(Event.SelectItem(it)) }
                 ) {
 
                     Column(
                         modifier = Modifier
                             .padding(8.dp)
+                            .alpha(if (!isSelected) .7f else 1f)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -248,19 +262,22 @@ fun ColumnScope.BottomSheetContent(
                             Text(
                                 text = it.bus_num.toString() + " ".repeat(
                                     it.bus.toCharArray().size - it.bus_num.toString()
-                                        .toCharArray().size + 3
+                                        .toCharArray().size + 10
                                 ),
                                 color = if (!isSelected) Color.Black else Color.White,
                                 style = TextStyle(
                                     fontFamily = UberFontFamily,
                                     fontWeight = FontWeight.Medium,
-                                    fontSize = 12.sp
+                                    fontSize = 14.sp
                                 )
                             )
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
-                                    .background(color = it.color!!, shape =  RoundedCornerShape(100.dp))
+                                    .background(
+                                        color = it.color!!,
+                                        shape = RoundedCornerShape(100.dp)
+                                    )
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -270,13 +287,13 @@ fun ColumnScope.BottomSheetContent(
                             style = TextStyle(
                                 fontFamily = UberFontFamily,
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 10.sp,
+                                fontSize = 12.sp,
                             )
                         )
                     }
-
                 }
             }
+            item { Spacer(modifier = Modifier.size(24.dp)) }
         }
 
         Spacer(
@@ -286,184 +303,138 @@ fun ColumnScope.BottomSheetContent(
                 .fillMaxWidth()
         )
 
-
         state.selectedBuss?.let {
             AnimatedVisibility(visible = true) {
-                Column(Modifier.padding(horizontal = 16.dp)) {
+                Column(
+                    Modifier
+                        .offset(y = -16.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(start = 24.dp)) {
 
                     val myPoint =
                         Point.fromLngLat(state.location!!.longitude, state.location.latitude)
                     val stopNearMe: Point = findClosest(myPoint, state.selectedBuss.coords)
                     val distance = calculateDistance(myPoint, stopNearMe)
-                    Text(
-                        text = DecimalFormat("#.#").format(distance)
-                            .toString() + "km     " + ((distance / 5) * 60).toInt() + "min     ",
-                        color = Color.DarkGray,
-                        textDecoration = TextDecoration.Underline,
-                        style = TextStyle(
-                            fontFamily = UberFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
+                    Row (verticalAlignment = Alignment.Bottom, modifier = Modifier.offset(x = -16.dp)){
+                        Icon(
+                            painter = painterResource(id = R.drawable.walking),
+                            contentDescription = null,
+                            tint = TxtBlack,
+                            modifier = Modifier.size(24.dp)
                         )
-                    )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = DecimalFormat("#.#").format(distance).toString() ,
+                            color = TxtBlack,
+                            style = TextStyle(
+                                fontFamily = UberFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 21.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "km",
+                            color = TxtBlack,
+                            style = TextStyle(
+                                fontFamily = UberFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.size(48.dp))
+                        Text(
+                            text = ((distance / 5) * 60).toInt().toString(),
+                            color = TxtBlack,
+                            style = TextStyle(
+                                fontFamily = UberFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 21.sp
+                            )
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "min",
+                            color = TxtBlack,
+                            style = TextStyle(
+                                fontFamily = UberFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
 
                     // --
-
-                    val (start, stop) = state.selectedBuss?.bus?.capitalizeFirst()?.split(",")
-                        ?: listOf()
                     Text(
-                        text = "$start->$stop",
-                        color = Color.DarkGray,
-                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.offset(x = -16.dp),
+                        text = "Stops",
+                        color = TxtBlack,
                         style = TextStyle(
                             fontFamily = UberFontFamily,
                             fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
+                            fontSize = 18.sp
                         )
                     )
-                    TimeList(state.selectedBuss!!.from.stringToListStops())
-
                     Spacer(modifier = Modifier.heightIn(8.dp))
-
                     Text(
-                        text = "$stop->$start",
-                        color = Color.DarkGray,
-                        textDecoration = TextDecoration.Underline,
-                        style = TextStyle(
-                            fontFamily = UberFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
-                    )
-
-                    TimeList(state.selectedBuss!!.to.stringToListStops())
-
-                    // --
-
-                    /*Text(
-                        text = state.selectedBuss!!.stops.capitalizeFirst().stringToListStops().joinToString("->"),
+                        modifier = Modifier.alpha(.9f),
+                        text = state.selectedBuss!!.stops.capitalizeFirst().stringToListStops()
+                            .joinToString(", "),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                        color = TxtBlack,
                         style = TextStyle(
                             fontFamily = UberFontFamily,
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp
                         )
-                    )*/
+                    )
 
-                    /*Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = state.selectedBuss!!.bus.capitalizeFirst(), style = TextStyle(
-                                fontFamily = UberFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 20.sp
-                            )
-                        )
-                        Text(
-                            text = state.selectedBuss!!.bus_num.toString(), style = TextStyle(
-                                fontFamily = UberFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 20.sp
-                            )
-                        )
-                    }*/
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    //---
-                    /*Text(
-                        text = "Schedule", style = TextStyle(
+                    //--
+                    Text(
+                        modifier = Modifier.offset(x = -16.dp),
+                        text = "Schedule",
+                        color = TxtBlack,
+                        style = TextStyle(
                             fontFamily = UberFontFamily,
                             fontWeight = FontWeight.Medium,
-                            fontSize = 24.sp
-                        )
-                    )*/
-
-
-                    //---
-
-
-                    //---
-
-                    /*Text(
-                        text = "Location", style = TextStyle(
-                            fontFamily = UberFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 24.sp
+                            fontSize = 18.sp
                         )
                     )
-                    Spacer(modifier = Modifier.heightIn(32.dp))
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-                        Text(
-                            text = "Latitude: ",
-                            color = Color.DarkGray,
-                            textDecoration = TextDecoration.Underline,
-                            style = TextStyle(
-                                fontFamily = UberFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp
-                            )
-                        )
-                        Card(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .offset(y = 4.dp),
-                            colors = CardDefaults.cardColors(
-                                Color.LightGray
-                            )
-                        ) {
-                            Text(
-                                text = "${state.location?.latitude?.toString() ?: "00.000000"}°",
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .padding(horizontal = 4.dp),
-                                style = TextStyle(
-                                    fontFamily = UberFontFamily,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 17.sp
-                                )
-                            )
-                        }
-
-                    }
-
                     Spacer(modifier = Modifier.heightIn(8.dp))
 
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+                    Column(modifier = Modifier.alpha(.9f)) {
+                        val (start, stop) = state.selectedBuss?.bus?.capitalizeFirst()?.split(",")
+                            ?: listOf()
                         Text(
-                            text = "Longitude: ",
-                            color = Color.DarkGray,
-                            textDecoration = TextDecoration.Underline,
+                            text = "$start, $stop",
+                            color = TxtBlack,
+                            style = TextStyle(
+                                fontFamily = UberFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp
+                            )
+                        )
+                        TimeList(state.selectedBuss!!.from.stringToListStops())
+                        Text(
+                            text = "$stop, $start",
+                            color = TxtBlack,
                             style = TextStyle(
                                 fontFamily = UberFontFamily,
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 15.sp
                             )
                         )
-                        Card(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .offset(y = 4.dp),
-                            colors = CardDefaults.cardColors(
-                                Color.LightGray
-                            )
-                        ) {
-                            Text(
-                                text = "${state.location?.longitude?.toString() ?: "00.000000"}°",
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .padding(horizontal = 4.dp),
-                                style = TextStyle(
-                                    fontFamily = UberFontFamily,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 17.sp
-                                )
-                            )
-                        }
-                    }*/
+                        TimeList(state.selectedBuss!!.to.stringToListStops())
+                    }
 
+
+                    Spacer(modifier = Modifier.heightIn(8.dp))
 
                 }
             }
@@ -483,6 +454,7 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
     val routs = state.buses.map { it.coords }
     val context = LocalContext.current
 
+
     MapboxMap(
         Modifier.fillMaxSize(),
         mapViewportState = state.mapViewportState,
@@ -491,13 +463,13 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
             LocalDensity.current.density
         )
             .toBuilder()
-            .setLocationPuck(createDefault2DPuck(withBearing = true))
-            .setPuckBearingEnabled(true)
+            //.setLocationPuck(createDefault2DPuck(withBearing = true))
+            .setLocationPuck(LocationPuck2D(topImage = ImageHolder.from(R.drawable.puck)))
+            .setPuckBearingEnabled(false)
             .setPuckBearing(PuckBearing.HEADING)
             .setEnabled(true)
             .build()
     ) {
-
         /*MapEffect {
             it.mapboxMap.loadStyle(Style.LIGHT)
         }*/
@@ -537,8 +509,6 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
             }
         }
 
-        // me to stop
-
         var myRout by remember {
             mutableStateOf<List<Point>?>(null)
         }
@@ -556,15 +526,34 @@ fun mapItem(viewModel: MainViewModel = viewModel()) {
                 PolylineAnnotation(
                     points = it,
                     lineJoin = LineJoin.ROUND,
-                    lineColorInt = Color.Blue.toArgb(),
+                    lineColorInt = MyBlue.toArgb(),
                     lineOpacity = 0.2,
                     lineWidth = 8.0,
                 )
                 PolylineAnnotation(
                     points = it,
                     lineJoin = LineJoin.ROUND,
-                    lineColorInt = Color.Blue.toArgb(),
-                    lineWidth = 2.0,
+                    lineColorInt = MyBlue.toArgb(),
+                    lineWidth = 4.0,
+                )
+            }
+
+            state.liveBusLoc?.let {
+                CircleAnnotation(
+                    point = it,
+                    circleRadius = 16.0,
+                    circleOpacity = 0.2,
+                    circleColorInt = state.selectedBuss.color!!.toArgb(),
+                )
+                CircleAnnotation(
+                    point = it,
+                    circleRadius = 10.0,
+                    circleColorInt = state.selectedBuss.color!!.toArgb(),
+                )
+                CircleAnnotation(
+                    point = it,
+                    circleRadius = 4.0,
+                    circleColorInt = Color.White.toArgb(),
                 )
             }
         }

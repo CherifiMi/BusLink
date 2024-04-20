@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.buslinkstudent.theme.MyBlue
+import com.example.buslinkstudent.theme.TxtBlack
 import com.example.buslinkstudent.theme.UberFontFamily
 import com.example.common.util.extensions.findNextAvailableTime
 import java.time.LocalTime
@@ -29,7 +31,7 @@ fun TimeItem(time: String, isNearestTime: Boolean) {
             .padding(4.dp)
             .offset(y = if (!isNearestTime) (4).dp else 0.dp),
         colors = CardDefaults.cardColors(
-            if (isNearestTime) Color.Blue else Color.White
+            if (isNearestTime) MyBlue else Color.White
         )
     ) {
         Text(
@@ -37,7 +39,7 @@ fun TimeItem(time: String, isNearestTime: Boolean) {
             modifier = Modifier
                 .padding(if (isNearestTime) 2.dp else 0.dp)
                 .padding(horizontal = if (isNearestTime) 4.dp else 0.dp),
-            color = if (isNearestTime) Color.White else Color.Black,
+            color = if (isNearestTime) Color.White else TxtBlack,
             fontSize = if (isNearestTime) 14.sp else 12.sp,
             fontWeight = if (isNearestTime) FontWeight.Medium else FontWeight.Medium,
             fontFamily = UberFontFamily

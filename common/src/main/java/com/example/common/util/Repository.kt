@@ -50,6 +50,7 @@ suspend fun readFromWebSocket(bus_id: Int,function: (it: String) -> Unit) = with
             Log.d("MITOTEST", "Value is: $value")
 
             function(value.toString())
+            //Log.d("MITOTEST", value.toString())
         }
 
         override fun onCancelled(error: DatabaseError) {
