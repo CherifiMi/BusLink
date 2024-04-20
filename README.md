@@ -43,7 +43,7 @@
   - Make **BusLink** available to everyone.
 
 ## Installation
-For installation, you can download the APKs for both apps from the release page. Or if you want to build the app yourself, you can:
+For installation, you can download the APKs for both apps from [the release page](https://github.com/CherifiMi/BusLink/releases/tag/0.0.1). Or if you want to build the app yourself, you can:
 1. Clone the repository:
    ```
    git clone https://github.com/CherifiMi/BusLink.git
