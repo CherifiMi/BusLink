@@ -58,3 +58,31 @@ fun findClosest(myPoint: Point, listOfPoints: List<Point>): Point {
     }
     return listOfPoints[i]
 }
+
+fun calculateDistance(
+    p1: Point,
+    p2: Point,
+): Double {
+
+    val latitude1 = p1.latitude()
+    val longitude1 = p1.longitude()
+    val latitude2 = p2.latitude()
+    val longitude2 = p2.longitude()
+
+    val earthRadius = 6371.0 // Earth's radius in kilometers
+
+    // Convert latitude and longitude from degrees to radians
+    val dLat = Math.toRadians(latitude2 - latitude1)
+    val dLon = Math.toRadians(longitude2 - longitude1)
+    val lat1 = Math.toRadians(latitude1)
+    val lat2 = Math.toRadians(latitude2)
+
+    // Haversine formula
+    val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1) * Math.cos(lat2) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    val distance = earthRadius * c
+
+    return distance
+}
