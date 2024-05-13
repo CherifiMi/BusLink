@@ -43,6 +43,11 @@
 - **Universal App**:
   - Extend beyond campuses.
   - Make **BusLink** available to everyone.
+ 
+
+## mvvm clean architecture
+![1_gNMlCdPkghf_2F8v3MGtqA](https://github.com/CherifiMi/BusLink/assets/98290339/2898964d-a2dd-4fb0-8338-77ef19dfec7d)
+
 
 ## Installation
 For installation, you can download the APKs for both apps from [the release page](https://github.com/CherifiMi/BusLink/releases/tag/0.0.1). Or if you want to build the app yourself, you can:
